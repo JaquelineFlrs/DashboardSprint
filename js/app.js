@@ -94,20 +94,29 @@ async function loadBurndownChartAndTable() {
       await loadBurndownChartAndTable();
     });
   });
+  
   tbody.querySelectorAll('.bd-manual').forEach(chk => {
     chk.addEventListener('change', async () => {
       const fecha = chk.getAttribute('data-fecha');
       $('bdMsg').textContent = 'Actualizando...';
-      const { error } = chk.checked
-        ? await supabase.rpc('set_burndown_manual', { p_fecha: fecha, p_real: parseFloat((tbody.querySelector(`input.bd-real[data-fecha="${fecha}"]`)?.value)||'0') })
-        : await supabase.rpc('unset_burndown_manual', { p_fecha: fecha });
-      $('bdMsg').textContent = error ? ('Error: '+error.message) : 'Listo.';
+      let error = null;
+      if (chk.checked) {
+        const inputEl = tbody.querySelector(`input.bd-real[data-fecha="${fecha}"]`);
+        const val = parseFloat((inputEl && inputEl.value) ? inputEl.value : '0');
+        const resp = await supabase.rpc('set_burndown_manual', { p_fecha: fecha, p_real: val });
+        error = resp.error;
+      } else {
+        const resp = await supabase.rpc('unset_burndown_manual', { p_fecha: fecha });
+        error = resp.error;
+      }
+      $('bdMsg').textContent = error ? ('Error: ' + error.message) : 'Listo.';
       await loadKpis();
       await loadBurndownChartAndTable();
     });
   });
 
   // Recalcular
+
   $('btnRecalc').onclick = async () => {
     $('bdMsg').textContent = 'Reconstruyendo...';
     const { error } = await supabase.rpc('reconstruir_burndown_sprint_activo');
