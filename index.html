@@ -4,182 +4,83 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin · Sprint Dashboard</title>
+  <title>Admin Sprint</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
-  <div class="min-h-screen flex flex-col lg:flex-row">
-    <!-- Sidebar -->
-    <aside class="w-full lg:w-72 bg-white shadow-lg p-6 lg:min-h-screen">
-      <h2 class="text-xl font-bold mb-6">Sprint Admin</h2>
-      <nav id="sidebarNav" class="space-y-2">
-        <a href="#" data-view="dashboard" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 text-gray-900">
-          <span class="font-medium">Dashboard</span><span class="text-xs text-gray-500">resumen</span>
-        </a>
-        <a href="#" data-view="control" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700">
-          <span class="font-medium">Control de subtareas</span><span class="text-xs text-gray-400">grid</span>
-        </a>
-        <a href="#" data-view="sprint" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700">
-          <span class="font-medium">Registrar sprint</span><span class="text-xs text-gray-400">form</span>
-        </a>
-        <a href="#" data-view="upload" class="nav-item flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700">
-          <span class="font-medium">Cargas CSV</span><span class="text-xs text-gray-400">import</span>
-        </a>
+  <div class="min-h-screen flex">
+    <aside class="w-60 bg-white shadow p-4" id="sidebarNav">
+      <div class="text-lg font-bold mb-4">Admin Sprint</div>
+      <nav class="space-y-2">
+        <a href="#" class="nav-item block px-3 py-2 rounded text-gray-700 bg-gray-100 text-gray-900" data-view="dashboard">Dashboard</a>
+        <a href="#" class="nav-item block px-3 py-2 rounded text-gray-700" data-view="control">Control de subtareas</a>
+        <a href="#" class="nav-item block px-3 py-2 rounded text-gray-700" data-view="sprint">Registrar sprint</a>
+        <a href="#" class="nav-item block px-3 py-2 rounded text-gray-700" data-view="upload">Cargas CSV</a>
       </nav>
     </aside>
-
-    <!-- Main -->
-    <main class="flex-1 p-6 space-y-10">
-      <!-- Vista: Dashboard -->
-      <section id="view-dashboard" class="space-y-8">
-        <header class="flex items-center justify-between">
-          <div>
-            <h1 id="sprintName" class="text-3xl font-bold">—</h1>
-            <p id="sprintDates" class="text-sm text-gray-600">—</p>
-          </div>
-          <div class="text-right">
-            <div class="text-xs text-gray-500">Días hábiles restantes</div>
-            <div id="diasRestantes" class="text-2xl font-bold">—</div>
-          </div>
+    <main class="flex-1 p-6 space-y-6">
+      <section id="view-dashboard">
+        <header class="mb-4">
+          <div class="text-2xl font-bold" id="sprintName">Sprint</div>
+          <div class="text-sm text-gray-500" id="sprintDates">—</div>
         </header>
-
-        <!-- KPIs -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div class="bg-white p-6 rounded-xl shadow-md"><div class="text-xs text-gray-500">Total hrs del sprint</div><div id="kpiTotal" class="text-2xl font-bold">—</div></div>
-          <div class="bg-white p-6 rounded-xl shadow-md"><div class="text-xs text-gray-500">Hrs pendientes</div><div id="kpiPendientes" class="text-2xl font-bold">—</div></div>
-          <div class="bg-white p-6 rounded-xl shadow-md"><div class="text-xs text-gray-500">Hrs terminadas</div><div id="kpiTerminadas" class="text-2xl font-bold">—</div></div>
-          <div class="bg-white p-6 rounded-xl shadow-md"><div class="text-xs text-gray-500">% avance</div><div id="kpiAvance" class="text-2xl font-bold">—</div></div>
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded shadow"><div class="text-xs text-gray-500">Total hrs sprint</div><div id="kpiTotal" class="text-2xl font-bold">—</div></div>
+          <div class="bg-white p-4 rounded shadow"><div class="text-xs text-gray-500">Hrs pendientes</div><div id="kpiPendientes" class="text-2xl font-bold">—</div></div>
+          <div class="bg-white p-4 rounded shadow"><div class="text-xs text-gray-500">Hrs terminadas</div><div id="kpiTerminadas" class="text-2xl font-bold">—</div></div>
+          <div class="bg-white p-4 rounded shadow"><div class="text-xs text-gray-500">% avance</div><div id="kpiAvance" class="text-2xl font-bold">—</div></div>
         </section>
-
-        <!-- Burndown (gráfico) -->
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold">Burndown</h2>
-            <div class="text-xs text-gray-500">Eje X: Día 0 … Día N+1</div>
-          </div>
-          <div class="h-72"><canvas id="burndownChart"></canvas></div>
-        </section>
-
-        <!-- Burndown (tabla editable) -->
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-semibold">Burndown — tabla editable</h3>
-            <button id="btnRecalc" class="px-3 py-1.5 rounded-lg border">Reconstruir desde cargas</button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-              <thead class="text-left text-gray-600 border-b">
-                <tr>
-                  <th class="py-2 pr-4">Día</th>
-                  <th class="py-2 pr-4">Fecha</th>
-                  <th class="py-2 pr-4">Estimación</th>
-                  <th class="py-2 pr-4">Real</th>
-                  <th class="py-2 pr-4">Manual</th>
-                </tr>
-              </thead>
+        <section class="bg-white rounded shadow p-4 h-72">
+          <div class="flex items-center justify-between mb-2"><div class="font-semibold">Burndown</div><button id="btnRecalc" class="text-sm px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">Reconstruir</button></div>
+          <div class="h-56"><canvas id="burndownChart"></canvas></div>
+          <div id="bdMsg" class="text-xs text-gray-500 mt-2">—</div>
+          <div class="overflow-auto mt-4">
+            <table class="w-full text-sm">
+              <thead><tr class="text-left text-gray-500"><th class="py-2 pr-4">Día</th><th class="py-2 pr-4">Fecha</th><th class="py-2 pr-4">Estimación</th><th class="py-2 pr-4">Real</th><th class="py-2 pr-4">Manual</th></tr></thead>
               <tbody id="bdBody"></tbody>
             </table>
           </div>
-          <p id="bdMsg" class="text-xs text-gray-500 mt-2"></p>
         </section>
-
-        <!-- Avance por lista -->
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <h3 class="text-base font-semibold mb-4">Avance por lista</h3>
-          <div id="avanceListas" class="space-y-4"></div>
-        </section>
-
-        <!-- Avance por historia -->
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold">Hoy — por Historia</h3>
-            <span class="text-xs text-gray-500">Distribución por tipo</span>
-          </div>
-          <div id="avanceHU" class="space-y-3"></div>
-        </section>
-
-        <!-- Avance por participante -->
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <h3 class="text-base font-semibold mb-4">Hoy — por participante</h3>
-          <div id="avanceOwners" class="space-y-6"></div>
-        </section>
+        <section class="bg-white rounded shadow p-4"><div class="font-semibold mb-3">Avance por lista</div><div id="avanceListas" class="space-y-3"></div></section>
+        <section class="bg-white rounded shadow p-4"><div class="flex items-center justify-between mb-3"><div class="font-semibold">Hoy — por Historia</div><div class="text-xs text-gray-500">Distribución por tipo</div></div><div id="avanceHU" class="space-y-3"></div></section>
+        <section class="bg-white rounded shadow p-4"><div class="font-semibold mb-3">Hoy — por participante</div><div id="avanceOwners" class="space-y-3"></div></section>
       </section>
-
-      <!-- Vista: Control -->
-      <section id="view-control" class="space-y-8 hidden">
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-semibold">Control de subtareas</h3>
-            <div class="flex items-center gap-2">
-              <input id="searchSub" type="text" placeholder="Buscar..." class="w-56 px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring focus:ring-blue-200" />
-              <select id="pageSize" class="px-2 py-2 rounded-lg border border-gray-200 text-sm"><option>25</option><option selected>50</option><option>100</option></select>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-              <thead class="text-left text-gray-600 border-b">
-                <tr>
-                  <th class="py-2 pr-4">Folio</th><th class="py-2 pr-4">Título</th><th class="py-2 pr-4">Estado</th>
-                  <th class="py-2 pr-4">Propietario</th><th class="py-2 pr-4 text-center">Terminado manual</th>
-                  <th class="py-2 pr-4 text-center">Visible</th><th class="py-2 pr-4">Lista</th>
-                </tr>
-              </thead>
-              <tbody id="subBody"></tbody>
-            </table>
-          </div>
-          <div class="flex items-center justify-between mt-3 text-sm">
-            <div id="countSub" class="text-gray-500">—</div>
-            <div class="flex items-center gap-2"><button id="prevSub" class="px-3 py-1.5 rounded-lg border">Anterior</button><span id="pageSub" class="text-gray-600">1 / 1</span><button id="nextSub" class="px-3 py-1.5 rounded-lg border">Siguiente</button></div>
-          </div>
-        </section>
+      <section id="view-control" class="hidden">
+        <div class="bg-white rounded shadow p-4">
+          <div class="flex items-center justify-between mb-3"><div class="font-semibold">Control de subtareas</div><div class="flex items-center gap-2"><input id="searchSub" placeholder="Buscar..." class="px-3 py-1 rounded border" /><select id="pageSize" class="px-2 py-1 rounded border"><option>50</option><option>100</option><option>200</option></select></div></div>
+          <div class="overflow-auto"><table class="w-full text-sm"><thead><tr class="text-left text-gray-500"><th class="py-2 pr-4">Folio</th><th class="py-2 pr-4">Título</th><th class="py-2 pr-4">Estado</th><th class="py-2 pr-4">Propietario</th><th class="py-2 pr-4">Terminado manual</th><th class="py-2 pr-4">Visible</th><th class="py-2 pr-4">Lista</th></tr></thead><tbody id="subBody"></tbody></table></div>
+          <div class="flex items-center justify-end gap-3 mt-2 text-sm text-gray-600"><span id="countSub">0 de 0</span><button id="prevSub" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">Anterior</button><span id="pageSub">1 / 1</span><button id="nextSub" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">Siguiente</button></div>
+        </div>
       </section>
-
-      <!-- Vista: Registrar sprint -->
-      <section id="view-sprint" class="space-y-8 hidden">
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <h3 class="text-base font-semibold mb-4">Registrar sprint</h3>
+      <section id="view-sprint" class="hidden">
+        <div class="bg-white rounded shadow p-4 space-y-3">
+          <div class="font-semibold">Registrar sprint</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <input id="f_nombre" class="px-3 py-2 rounded border" placeholder="Nombre del sprint" />
+            <input id="f_inicio" type="date" class="px-3 py-2 rounded border" />
+            <input id="f_fin" type="date" class="px-3 py-2 rounded border" />
+            <input id="f_hsprint" type="number" step="0.01" class="px-3 py-2 rounded border" placeholder="Horas totales" />
+            <input id="f_hxd" type="number" step="0.01" class="px-3 py-2 rounded border" placeholder="Horas por día (capacidad)" />
+            <button id="f_save" class="px-3 py-2 rounded bg-blue-600 text-white">Guardar</button>
+          </div>
+          <div id="f_msg" class="text-sm text-gray-600">—</div>
+        </div>
+      </section>
+      <section id="view-upload" class="hidden">
+        <div class="bg-white rounded shadow p-4 space-y-3">
+          <div class="font-semibold">Cargas CSV</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label class="text-xs text-gray-600">Nombre</label><input id="f_nombre" class="w-full px-3 py-2 rounded-lg border" /></div>
-            <div><label class="text-xs text-gray-600">Horas del sprint</label><input id="f_hsprint" type="number" step="0.01" class="w-full px-3 py-2 rounded-lg border" /></div>
-            <div><label class="text-xs text-gray-600">Inicio</label><input id="f_inicio" type="date" class="w-full px-3 py-2 rounded-lg border" /></div>
-            <div><label class="text-xs text-gray-600">Fin</label><input id="f_fin" type="date" class="w-full px-3 py-2 rounded-lg border" /></div>
-            <div><label class="text-xs text-gray-600">Horas por día</label><input id="f_hxd" type="number" step="0.25" class="w-full px-3 py-2 rounded-lg border" /></div>
+            <div><div class="text-sm font-medium mb-1">historias.csv (opcional)</div><input type="file" id="fileHistorias" accept=".csv" class="block w-full" /></div>
+            <div><div class="text-sm font-medium mb-1">sub.csv (opcional)</div><input type="file" id="fileSub" accept=".csv" class="block w-full" /></div>
           </div>
-          <div class="flex items-center justify-end gap-2 mt-6">
-            <button id="f_save" class="px-4 py-2 rounded-lg bg-blue-600 text-white">Guardar</button>
-          </div>
-          <p id="f_msg" class="text-sm mt-3 text-gray-600"></p>
-        </section>
-      </section>
-
-      <!-- Vista: Cargas CSV -->
-      <section id="view-upload" class="space-y-8 hidden">
-        <section class="bg-white rounded-xl shadow-md p-6">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-semibold">Cargar CSVs</h3>
-            <button id="u_recalc" class="px-3 py-1.5 rounded-lg border">Reconstruir burndown</button>
-          </div>
-          <div class="grid grid-cols-1 gap-4">
-            <div>
-              <label class="text-xs text-gray-600">historias.csv</label>
-              <input id="fileHistorias" type="file" accept=".csv" class="w-full" />
-            </div>
-            <div>
-              <label class="text-xs text-gray-600">sub.csv</label>
-              <input id="fileSub" type="file" accept=".csv" class="w-full" />
-            </div>
-          </div>
-          <div class="flex items-center justify-end mt-4">
-            <button id="u_process" class="px-4 py-2 rounded-lg bg-gray-900 text-white">Procesar archivos</button>
-          </div>
-          <p id="u_msg" class="text-sm mt-3 text-gray-600"></p>
-        </section>
+          <div class="flex items-center gap-2"><button id="u_process" class="px-3 py-2 rounded bg-blue-600 text-white">Procesar</button><button id="u_recalc" class="px-3 py-2 rounded bg-gray-100">Reconstruir burndown</button></div>
+          <div id="u_msg" class="text-sm text-gray-600">—</div>
+        </div>
       </section>
     </main>
   </div>
-
-  <script type="module" src="./js/app.js?v=7"></script>
+  <script type="module" src="./js/app.js?v=8"></script>
 </body>
 </html>
