@@ -122,14 +122,6 @@ async function loadBurndownChartAndTable() {
 
   // Recalcular
 
-  $('btnRecalc').onclick = async () => {
-    $('bdMsg').textContent = 'Reconstruyendo...';
-    const { error } = await supabase.rpc('reconstruir_burndown_sprint_activo');
-    $('bdMsg').textContent = error ? ('Error: '+error.message) : 'Burndown reconstruido.';
-    await loadKpis();
-    await loadBurndownChartAndTable();
-  };
-});
 
 async function loadPorLista() {
   const { data } = await supabase.from('vw_por_lista').select('*');
