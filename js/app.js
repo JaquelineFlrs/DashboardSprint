@@ -63,26 +63,31 @@ async function loadBurndownChartAndTable() {
     options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'bottom'}, tooltip:{mode:'index', intersect:false} }, interaction:{mode:'index', intersect:false}, scales:{ y:{ beginAtZero:true } } }
   });
 
-  // Table
-  const tbody = $('bdBody'); const fmtDate = (d) => new Date(d).toLocaleDateString('es-MX');
-  tbody.innerHTML = data.map(r => `
-    <tr class="border-b last:border-0">
-      <td class="py-2 pr-4">${r.dia}</td>
-      <td class="py-2 pr-4">${fmtDate(r.fecha)}</td>
-      <td class="py-2 pr-4">${fmt.num(r.estimacion)}</td>
-      <td class="py-2 pr-4">
-        <input data-fecha="${r.fecha}" value="${r.real ?? ''}" class="bd-real w-32 px-2 py-1 rounded border" placeholder="—" />
-      </td>
-      <td class="py-2 pr-4">
-        <label class="inline-flex items-center gap-2 text-sm">
-          <input type="checkbox" class="bd-manual" data-fecha="${r.fecha}" ${r.manual_edit ? 'checked':''} />
-          Manual
-        </label>
-      </td>
-    </tr>
-  `).join('');
 
-  // Wire inputs
+  // Table
+  const tbody = $('bdBody');
+  const fmtDate = (d) => new Date(d).toLocaleDateString('es-MX');
+  tbody.innerHTML = data.map(r => {
+    const realVal = (r.real == null ? '' : r.real);
+    const manualAttr = r.manual_edit ? 'checked' : '';
+    return (
+      '<tr class="border-b last:border-0">' +
+        '<td class="py-2 pr-4">' + r.dia + '</td>' +
+        '<td class="py-2 pr-4">' + fmtDate(r.fecha) + '</td>' +
+        '<td class="py-2 pr-4">' + fmt.num(r.estimacion) + '</td>' +
+        '<td class="py-2 pr-4">' +
+          '<input data-fecha="' + r.fecha + '" value="' + realVal + '" class="bd-real w-32 px-2 py-1 rounded border" placeholder="—" />' +
+        '</td>' +
+        '<td class="py-2 pr-4">' +
+          '<label class="inline-flex items-center gap-2 text-sm">' +
+            '<input type="checkbox" class="bd-manual" data-fecha="' + r.fecha + '" ' + manualAttr + ' />' +
+            'Manual' +
+          '</label>' +
+        '</td>' +
+      '</tr>'
+    );
+  }).join('');
+// Wire inputs
   tbody.querySelectorAll('.bd-real').forEach(inp => {
     inp.addEventListener('change', async () => {
       const fecha = inp.getAttribute('data-fecha');
@@ -124,7 +129,7 @@ async function loadBurndownChartAndTable() {
     await loadKpis();
     await loadBurndownChartAndTable();
   };
-})
+});
 
 async function loadPorLista() {
   const { data } = await supabase.from('vw_por_lista').select('*');
